@@ -317,3 +317,20 @@ ScatterPlot2 <- ggplot(DataForPlotSummary %>% filter(Group == 'BoHL'),
 ScatterPlot2
 
 ```
+
+```{r Plot Scatter Plot, message = FALSE, fig.width= 9, fig.height = 6}
+ggplotly(ScatterPlot) %>% 
+  layout(annotations = list(x = 0 , 
+                            y = 1.05, 
+                            text = "Sources: First Street Foundation’s Flood Factor, US 2015-2019 American Community Survey", 
+                            showarrow = F, 
+                            xref='paper', yref='paper'))
+
+comb <- subplot(MapPlot2, 
+                ScatterPlot2,
+                titleY = TRUE,
+                titleX = TRUE,
+                margin = 0.07) 
+ggplotly(comb)
+
+```
