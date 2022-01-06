@@ -496,6 +496,170 @@ print(a)</code></pre>
 <h1>Replace this with problem 4</h1>
 <p>And keep going. Try to solve the problems with different scripts that provide the same solution. Good luck, Happy coding.</p>
 </div>
+<div id="set-up" class="section level1">
+<h1>Set up</h1>
+<div id="load-libraries" class="section level2">
+<h2>Load Libraries</h2>
+</div>
+<div id="get-data" class="section level2">
+<h2>Get Data</h2>
+<pre class="r"><code>ChicagoFloodData &lt;- read_csv(&quot;ChicagoFloodData.csv&quot;) %&gt;%
+  mutate(GEOID = as.numeric(AreaCode))
+
+minGEOID &lt;- min(ChicagoFloodData$GEOID)
+maxGEOID &lt;- max(ChicagoFloodData$GEOID)
+
+RaceData &lt;- get_acs(
+  geography = &quot;zcta&quot;,
+  table = c(race = &quot;B03002&quot;),
+  geometry = TRUE,
+  cache_table = TRUE) %&gt;% 
+  filter(GEOID &gt;= minGEOID &amp; GEOID &lt;= maxGEOID)
+
+MergeData &lt;- merge(RaceData, ChicagoFloodData) </code></pre>
+</div>
+<div id="clean-data" class="section level2">
+<h2>Clean Data</h2>
+<pre class="r"><code>MergeData &lt;- MergeData %&gt;% 
+  mutate(Group = case_when(variable == &quot;B03002_003&quot; ~ &#39;W&#39;,
+                           variable == &quot;B03002_004&quot; ~ &#39;BoHL&#39;,
+                           variable == &quot;B03002_012&quot; ~ &#39;BoHL&#39;,
+                           variable == &quot;B03002_001&quot; ~ &#39;D&#39;,
+                           variable == &quot;B03002_002&quot; ~ &#39;D&#39;,
+                           variable == &quot;B03002_013&quot; ~ &#39;D&#39;,
+                           variable == &quot;B03002_014&quot; ~ &#39;D&#39;,
+                           variable == &quot;B03002_015&quot; ~ &#39;D&#39;,
+                           variable == &quot;B03002_016&quot; ~ &#39;D&#39;,
+                           variable == &quot;B03002_017&quot; ~ &#39;D&#39;,
+                           variable == &quot;B03002_018&quot; ~ &#39;D&#39;,
+                           variable == &quot;B03002_019&quot; ~ &#39;D&#39;,
+                           variable == &quot;B03002_020&quot; ~ &#39;D&#39;,
+                           variable == &quot;B03002_021&quot; ~ &#39;D&#39;,
+                           TRUE ~ &#39;Other&#39;))
+
+DataForPlot &lt;- MergeData  %&gt;% 
+  filter(FloodingLikelihood == 0.2) %&gt;%
+  filter(Group != &#39;D&#39;)
+
+DataForPlotSummary &lt;- DataForPlot %&gt;% 
+  group_by(Group, GEOID) %&gt;%
+  summarize(NumPeople = sum(estimate), 
+            PercRisk = mean(PercentAtRisk),
+            FloodChance = mean(FloodChance)) %&gt;%
+  group_by(GEOID) %&gt;%
+  mutate(freq = (NumPeople/sum(NumPeople))*100,
+         freq_group = case_when(
+           freq &gt;= 0 &amp; freq &lt; 20 ~ &quot;0-20%&quot;,
+           freq &gt;= 20 &amp; freq &lt; 40 ~ &quot;20-40%&quot;,
+           freq &gt;= 40 &amp; freq &lt; 60 ~ &quot;40-60%&quot;,
+           freq &gt;= 60 &amp; freq &lt; 80 ~ &quot;60-80%&quot;,
+           freq &gt;= 80 &amp; freq &lt;= 100 ~ &quot;80-100%&quot;,
+           TRUE ~ &#39;ERROR&#39;
+         )) 
+
+DataForPlotSummary$quartile &lt;- ntile(DataForPlotSummary$FloodChance, 3)</code></pre>
+</div>
+<div id="plot-themes-and-plot-variables" class="section level2">
+<h2>Plot Themes and Plot Variables</h2>
+<pre class="r"><code>layer_ggtheme &lt;- list(
+  theme_classic() + 
+    theme(axis.ticks.x = element_line(size = 1),
+          legend.text = element_text(hjust=0.2,vjust=0.6, size = 16, colour = &quot;black&quot;),
+          legend.title = element_text(hjust=0,vjust=0.2,size = 18,  colour = &quot;black&quot;),
+          legend.position = c(.15,.85),
+          axis.text.x = element_text(hjust=1,vjust=0, size = 16, colour = &quot;black&quot;),
+          axis.text.y = element_text(hjust=1,vjust=0, size = 16, colour = &quot;black&quot;),
+          axis.title.x = element_text(hjust=.5,vjust=0.2, size = 16, colour = &quot;black&quot;),
+          axis.title.y = element_text(hjust=.5,vjust=0.2, size = 16, colour = &quot;black&quot;),
+          strip.text.x = element_text(hjust=.5,vjust=0.2, size = 16, colour = &quot;black&quot;),
+          plot.title = element_text(hjust=0,vjust=0.2, face = &quot;bold&quot;, colour = &quot;black&quot;)))
+
+point &lt;- format_format(big.mark = &quot;,&quot;, decimal.mark = &quot;.&quot;, scientific = FALSE)
+
+quartile.labs &lt;- c(&quot;Lowest&quot;,&quot;Middle&quot;,&quot;Highest&quot;)
+names(quartile.labs) &lt;- c(&quot;1&quot;,&quot;2&quot;,&quot;3&quot;)</code></pre>
+</div>
+<div id="map-plot" class="section level2">
+<h2>Map Plot</h2>
+<pre class="r"><code>DataForPlotSummary &lt;- sf::st_cast(DataForPlotSummary, &quot;MULTIPOLYGON&quot;)
+
+MapPlot2 &lt;- ggplot() +
+  geom_sf(data = DataForPlotSummary %&gt;%
+            filter(Group == &#39;BoHL&#39;), 
+          aes(fill = FloodChance),
+          color = &#39;black&#39;, size = .65) +
+  scale_fill_distiller(palette = &quot;YlOrBr&quot;, direction = 1,
+                       breaks = c(0),
+                       labels = &quot;none&quot;) +
+  labs(title = &quot;Flood Risk in Chicago (by Zip Code)&quot;,
+       fill = &quot;Risk&quot;)+
+  theme_classic() +
+  theme(
+    plot.title = element_text(size = 18,
+                              face = &quot;bold&quot;),
+    legend.title = element_text(size = 12),
+    legend.text = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank())
+
+
+
+MapPlot2</code></pre>
+<p><img src="Journal_files/figure-html/Create%20Map%20Plot-1.png" width="672" /></p>
+</div>
+<div id="scatter-plot" class="section level2">
+<h2>Scatter Plot</h2>
+<pre class="r"><code>ScatterPlot &lt;- ggplot(DataForPlotSummary %&gt;% filter(Group == &#39;BoHL&#39;), 
+                      aes(x = freq, y = FloodChance,
+                          fill = FloodChance,
+                          color = FloodChance)) +
+  geom_point(shape=21, size=4.5) +
+  scale_fill_distiller(palette = &quot;YlOrBr&quot;, direction = 1) +
+  scale_color_gradient(guide = FALSE, low = &quot;grey1&quot;, high = &quot;black&quot;) +
+  labs(x = &quot;Estimated Proportion Black or Hispanic&quot;,
+       y = &quot;Number of Properties&quot;,
+       title = &quot;Risk by Proportion Black or Hispanic Residents&quot;,
+       fill = &quot;Risk&quot;) +
+  scale_x_continuous(labels =  scales::percent_format(scale = 1), breaks = pretty_breaks()) +
+  scale_y_continuous(labels = point, breaks = pretty_breaks()) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 24),
+    plot.subtitle = element_text(size = 18),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 12),
+    strip.text.x = element_text(size = 18),
+    strip.background.x = element_rect(&quot;grey90&quot;),
+    plot.caption = element_text(size = 12),
+    legend.position = &quot;none&quot;)
+
+ScatterPlot</code></pre>
+<p><img src="Journal_files/figure-html/Create%20Scatter%20Plot-1.png" width="672" /></p>
+<pre class="r"><code>ScatterPlot2 &lt;- ggplot(DataForPlotSummary %&gt;% filter(Group == &#39;BoHL&#39;), 
+                       aes(x = freq, y = FloodChance,
+                           fill = FloodChance,
+                           color = FloodChance)) +
+  geom_point(shape=21, size=4.5) +
+  scale_fill_distiller(palette = &quot;YlOrBr&quot;, direction = 1) +
+  scale_color_gradient(guide = FALSE, low = &quot;grey1&quot;, high = &quot;black&quot;) +
+  labs(x = &quot;Proportion Black or Hispanic Residents&quot;,
+       y = &quot;Properties at Risk&quot;,
+       title = NULL,
+       fill = &quot;Risk&quot;) +
+  scale_x_continuous(labels =  scales::percent_format(scale = 1), breaks = pretty_breaks()) +
+  scale_y_continuous(labels = point, breaks = pretty_breaks()) +
+  theme_minimal() +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    legend.position = &quot;none&quot;
+  )
+
+ScatterPlot2</code></pre>
+<p><img src="Journal_files/figure-html/Create%20Scatter%20Plot-2.png" width="672" /></p>
+</div>
+</div>
 
 
 

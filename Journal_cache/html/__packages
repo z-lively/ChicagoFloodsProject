@@ -1,1 +1,17 @@
 base
+gridExtra
+ggplot2
+plotly
+tidyverse
+tibble
+tidyr
+readr
+purrr
+dplyr
+stringr
+forcats
+tidycensus
+scales
+tmap
+SnowballC
+lsa
