@@ -8,7 +8,6 @@ output: html_document
   display: none;
 }
 
-
 </style>
 
 <div class="row" style="padding-top: 0px;"> 
@@ -95,9 +94,9 @@ label = list(
   bordercolor = "black",
   font = font
 )
-
 ```
 # **Flood Risk in Chicago is Higher for Black and Hispanic Communities**
+By: Zack Lively (z.a.lively@gmail.com)
 ```{r Create Map Plot, echo = FALSE, message = FALSE, warning=FALSE}
 
 MapPlot <- ggplot(data = ChicagoDataSummary, 

@@ -12,11 +12,27 @@ editor_options:
   chunk_output_type: console
 ---
 
+<style type="text/css">
+.title {
+  display: none;
+}
+
+
+</style>
+
+<div class="row" style="padding-top: 0px;"> 
+<div class="col-sm-10">
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 ```
 
-# R Set up #
+All the code for the Chicago Floods project.
+
+# Start #
+
+Initial set up. Load libraries. 
 
 ## Load Libraries ##
 ```{r load libraries, message = FALSE, warning=FALSE}
@@ -27,9 +43,11 @@ library(plotly)
 library(scales)
 ```
 
-# Data Set Up #
+# Data #
 
-## Get Data ##
+Load in Chicago flood data from First Street Foundation and ACS data using tidycensus package
+
+## Get ##
 ```{r Get Data, message = FALSE, warning=FALSE, results = 'hide'}
 FloodData <- read_csv("ChicagoFloodData.csv") %>%
   mutate(GEOID = as.numeric(AreaCode))
@@ -48,7 +66,7 @@ ChicagoData <- merge(CensusData, FloodData)
 
 ```
 
-## Clean Data ##
+## Clean ##
 ```{r, Clean Data, message = FALSE, warning=FALSE, results = FALSE}
 ChicagoData <- ChicagoData %>% 
   mutate(Group = case_when(variable == "B03002_003" ~ 'W',
@@ -92,7 +110,8 @@ ChicagoDataSummary$quartile <- ntile(ChicagoDataSummary$FloodChance, 3)
 ChicagoDataSummary <- sf::st_cast(ChicagoDataSummary, "MULTIPOLYGON")
 ```
 
-# Plot Set Up #
+# Plots #
+Create the two plots for this article. 1) Map of Chicago that plots flood data. 2) Scatter plot that plots risk data and percent of neighborhood that is black or Hispanic. Both plots are interactive; hovering shows Zip code, number of properties at risk of flood, and proportion of zip code that his black or Hispanic. 
 
 ## Themes and Variables ## 
 ```{r Plot Themes and Variables, message = FALSE, warning=FALSE}
@@ -115,7 +134,7 @@ label = list(
 
 ```
 
-## Create Map ##
+## Map ##
 ```{r Create Map Plot, message = FALSE, warning=FALSE}
 MapPlot <- ggplot(data = ChicagoDataSummary, 
                   aes(fill = FloodChance,
@@ -149,7 +168,7 @@ ggplotly(MapPlot, tooltip = c("text")) %>%
          showTips = TRUE)
 ```
 
-## Create Scatter Plot ##
+## Scatter Plot ##
 ```{r Create Scatter Plot, message = FALSE, warning=FALSE}
 ScatterPlot <- ggplot(ChicagoDataSummary, 
                       aes(x = freq, 
