@@ -1,10 +1,10 @@
-name: "MyLabJournal"
+name: "Chicago Floods"
 navbar:
-  title: "MyLabJournal"
+  title: "Chicago Floods"
   left:
-    - text: "Home"
+    - text: "Article"
       href: index.html
-    - text: "Journal"
+    - text: "Code"
       href: Journal.html
     - text: "Links"
       href: Links.html
