@@ -123,7 +123,8 @@ MapPlot <- ggplot(data = ChicagoDataSummary,
                                    "Properties at Risk:", FloodChance,"\n",
                                    "Black or Hispanic Residents:", round(freq),"%"))) +
   geom_sf(color = 'black', size = .3) +
-  scale_fill_distiller(palette = "PuBU", direction = 1,
+  scale_fill_distiller(palette = "YlGnBu", 
+                       direction = 1,
                        breaks = pretty_breaks(),
                        label = comma,
                        limits = c(0, 15000)) +
@@ -160,7 +161,7 @@ ScatterPlot <- ggplot(ChicagoDataSummary,
                                    "Black or Hispanic Residents:", round(freq),"%"))) +
   geom_point(shape=21, 
              size=4.5) +
-  scale_fill_distiller(palette = "PuBu", 
+  scale_fill_distiller(palette = "YlGnBu", 
                        direction = 1) +
   scale_color_gradient(guide = FALSE, 
                        low = "grey1", 
