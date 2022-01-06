@@ -1,4 +1,3 @@
-base
 gridExtra
 ggplot2
 plotly
@@ -15,3 +14,7 @@ scales
 tmap
 SnowballC
 lsa
+hrbrthemes
+usethis
+devtools
+bbplot

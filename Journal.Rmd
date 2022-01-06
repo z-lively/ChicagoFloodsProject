@@ -6,171 +6,51 @@ output:
     toc_float: true
     collapsed: false
     number_sections: false
-    toc_depth: 1
-    #code_folding: hide
+    toc_depth: 2
+    highlight: tango
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 ```
 
-IMPORTANT: You can delete everything in here and start fresh. You might want to start by not deleting anything above this line until you know what that stuff is doing.
-
-
-This is an .Rmd file. It is plain text with special features. Any time you write just like this, it will be compiled to normal text in the website. If you put a \# in front of your text, it will create a top level-header.
-
-# My first post
-
-2018 | 7 | 23 Last compiled: `r Sys.Date()`
-
-Notice that whatever you define as a top level header, automatically gets put into the table of contents bar on the left. 
-
-## Second level header
-
-You can add more headers by adding more hashtags. These won't be put into the table of contents
-
-### third level header
-
-Here's an even lower level header
-
-# My second post (note the order)
-
-2018 | 7 | 23 Last compiled: `r Sys.Date()`
-
-I'm writing this tutorial going from the top down. And, this is how it will be printed. So, notice the second post is second in the list. If you want your most recent post to be at the top, then make a new post starting at the top. If you want the oldest first, do, then keep adding to the bottom
-
-# Adding R stuff
-
-So far this is just a blog where you can write in plain text and serve your writing to a webpage. One of the main purposes of this lab journal is to record your progress learning R. The reason I am asking you to use this process is because you can both make a website, and a lab journal, and learn R all in R-studio. This makes everything really convenient and in the sam place. 
-
-So, let's say you are learning how to make a histogram in R. For example, maybe you want to sample 100 numbers from a normal distribution with mean = 0, and standard deviation =1, and then you want to plot a histogram. You can do this right here by using an r code block, like this:
-
-```{r}
-samples <- rnorm(100, mean=0, sd=1)
-hist(samples)
-```
-
-When you knit this R Markdown document, you will see that the histogram is printed to the page, along with the R code. This document can be set up to hide the R code in the webpage, just delete the comment (hashtag), from the cold folding option in the yaml header up top. For purposes of letting yourself see the code, and me see the code, best to keep it the way that it is. You learn all of these things and more can be customized in each R code block.
-
-# The big idea
-
-Use this lab journal to record what you do in R. This way I will be able to see what you are doing and help you along the way. You will also be creating a repository of all the things you do. You can make posts about everything. Learning specific things in R (project unrelated), and doing things for the project that we will discuss at the beginning of the Fall semester. You can get started now by fiddling around with googling things, and trying stuff out in R. I've placed some helpful starting links in the links page on this website
-
-# What can you do right now by yourself?
-
-It's hard to learn programming when you don't have specific problems that you are trying to solve. Everything just seems abstract.
-
-I wrote an [introductory programming book that introduces R](https://crumplab.github.io/programmingforpsych/), and gives some [concrete problems for you to solve](https://crumplab.github.io/programmingforpsych/programming-challenges-i-learning-the-fundamentals.html). 
-
-To get the hang of journaling and solving the problems to learn programming, my suggestion is that you use this .Rmd file to solve the problems. It would look like this:
-
-# Problem 1
-
-Do simple math with numbers, addition, subtraction, multiplication, division
-
-```{r}
-1+2
-2*5
-5/3
-(1+6+4)/5
-
-```
-
-# Problem 2
-
-Put numbers into variables, do simple math on the variables
-
-```{r}
-a<-1
-b<-2
-a+b
-
-d<-c(1,2,3)
-e<-c(5,6,7)
-d+e
-d*e
-d/e
-
-```
-
-# Problem 3
-
-Write code that will place the numbers 1 to 100 separately into a variable using for loop. Then, again using the seq function.
-
-```{r}
-# for loop solution
-# i becomes the number 1 to 100 at each step of the loop
-
-
-a <- length(100) # make empty variable, set length to 100
-for (i in 1:100){
-  a[i] <-i #assigns the number in i, to the ith index of a
-}
-
-print(a)
-
-# for loop solution #2
-
-a<-c() #create empty variable using combine command
-for (i in 1:100){
-  a<-c(a,i) # keeps combining a with itself and the new number in i
-}
-print(a)
-
-# seq solution
-a <- seq(1,100,1) # look up help for seq using ?seq() in console
-print(a)
-
-```
-
-# Replace this with problem 4
-
-And keep going. Try to solve the problems with different scripts that provide the same solution. Good luck, Happy coding.
-
-
-
-
-
-
-
-
-# Set up #
+# R Set up #
 
 ## Load Libraries ##
-```{r setup two, echo=FALSE, message = FALSE, warning=FALSE}
-library(gridExtra)
-library(plotly)
+```{r load libraries, message = FALSE, warning=FALSE}
 library(tidyverse)
 library(tidycensus)
 library(ggplot2)
+library(plotly)
 library(scales)
-library(tmap)
-library(lsa)
 ```
+
+# Data Set Up #
 
 ## Get Data ##
 ```{r Get Data, message = FALSE, warning=FALSE, results = 'hide'}
-ChicagoFloodData <- read_csv("ChicagoFloodData.csv") %>%
+FloodData <- read_csv("ChicagoFloodData.csv") %>%
   mutate(GEOID = as.numeric(AreaCode))
 
-minGEOID <- min(ChicagoFloodData$GEOID)
-maxGEOID <- max(ChicagoFloodData$GEOID)
+minGEOID <- min(FloodData$GEOID)
+maxGEOID <- max(FloodData$GEOID)
 
-RaceData <- get_acs(
+CensusData <- get_acs(
   geography = "zcta",
   table = c(race = "B03002"),
   geometry = TRUE,
   cache_table = TRUE) %>% 
   filter(GEOID >= minGEOID & GEOID <= maxGEOID)
 
-MergeData <- merge(RaceData, ChicagoFloodData) 
+ChicagoData <- merge(CensusData, FloodData) 
 
 ```
 
 ## Clean Data ##
-
 ```{r, Clean Data, message = FALSE, warning=FALSE, results = FALSE}
-MergeData <- MergeData %>% 
+ChicagoData <- ChicagoData %>% 
   mutate(Group = case_when(variable == "B03002_003" ~ 'W',
                            variable == "B03002_004" ~ 'BoHL',
                            variable == "B03002_012" ~ 'BoHL',
@@ -187,11 +67,9 @@ MergeData <- MergeData %>%
                            variable == "B03002_021" ~ 'D',
                            TRUE ~ 'Other'))
 
-DataForPlot <- MergeData  %>% 
+ChicagoDataSummary <- ChicagoData  %>% 
   filter(FloodingLikelihood == 0.2) %>%
-  filter(Group != 'D')
-
-DataForPlotSummary <- DataForPlot %>% 
+  filter(Group != 'D') %>% 
   group_by(Group, GEOID) %>%
   summarize(NumPeople = sum(estimate), 
             PercRisk = mean(PercentAtRisk),
@@ -207,24 +85,17 @@ DataForPlotSummary <- DataForPlot %>%
            TRUE ~ 'ERROR'
          )) 
 
-DataForPlotSummary$quartile <- ntile(DataForPlotSummary$FloodChance, 3)
+ChicagoDataSummary <- ChicagoDataSummary %>%
+  filter(Group == 'BoHL')
+
+ChicagoDataSummary$quartile <- ntile(ChicagoDataSummary$FloodChance, 3)
+ChicagoDataSummary <- sf::st_cast(ChicagoDataSummary, "MULTIPOLYGON")
 ```
 
-## Plot Themes and Plot Variables ## 
-```{r Plot Themes and Variables, message = FALSE, warning=FALSE}
+# Plot Set Up #
 
-layer_ggtheme <- list(
-  theme_classic() + 
-    theme(axis.ticks.x = element_line(size = 1),
-          legend.text = element_text(hjust=0.2,vjust=0.6, size = 16, colour = "black"),
-          legend.title = element_text(hjust=0,vjust=0.2,size = 18,  colour = "black"),
-          legend.position = c(.15,.85),
-          axis.text.x = element_text(hjust=1,vjust=0, size = 16, colour = "black"),
-          axis.text.y = element_text(hjust=1,vjust=0, size = 16, colour = "black"),
-          axis.title.x = element_text(hjust=.5,vjust=0.2, size = 16, colour = "black"),
-          axis.title.y = element_text(hjust=.5,vjust=0.2, size = 16, colour = "black"),
-          strip.text.x = element_text(hjust=.5,vjust=0.2, size = 16, colour = "black"),
-          plot.title = element_text(hjust=0,vjust=0.2, face = "bold", colour = "black")))
+## Themes and Variables ## 
+```{r Plot Themes and Variables, message = FALSE, warning=FALSE}
 
 point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
 
@@ -233,104 +104,68 @@ names(quartile.labs) <- c("1","2","3")
 
 ```
 
-## Map Plot ##
-
+## Create Map ##
 ```{r Create Map Plot, message = FALSE, warning=FALSE}
-
-DataForPlotSummary <- sf::st_cast(DataForPlotSummary, "MULTIPOLYGON")
-
-MapPlot2 <- ggplot() +
-  geom_sf(data = DataForPlotSummary %>%
-            filter(Group == 'BoHL'), 
-          aes(fill = FloodChance),
-          color = 'black', size = .65) +
+MapPlot <- ggplot(data = ChicagoDataSummary, 
+                   aes(fill = FloodChance)) +
+  geom_sf(color = 'black', size = .3) +
   scale_fill_distiller(palette = "YlOrBr", direction = 1,
-                       breaks = c(0),
-                       labels = "none") +
-  labs(title = "Flood Risk in Chicago (by Zip Code)",
-       fill = "Risk")+
+                       breaks = pretty_breaks(),
+                       label = comma,
+                       limits = c(0, 15000)) +
+  labs(title = NULL,
+       fill = "Properties\nat Risk") +
   theme_classic() +
   theme(
-    plot.title = element_text(size = 18,
-                              face = "bold"),
-    legend.title = element_text(size = 12),
-    legend.text = element_blank(),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
     axis.text = element_blank(),
     axis.ticks = element_blank(),
     axis.line = element_blank())
 
-
-
-MapPlot2
-
+ggplotly(MapPlot) %>% 
+  layout(
+    autosize = F, 
+    width = 400, 
+    height = 500
+  ) 
 ```
 
-## Scatter Plot ##
+## Create Scatter Plot ##
 ```{r Create Scatter Plot, message = FALSE, warning=FALSE}
 
-ScatterPlot <- ggplot(DataForPlotSummary %>% filter(Group == 'BoHL'), 
-                      aes(x = freq, y = FloodChance,
+ScatterPlot <- ggplot(ChicagoDataSummary, 
+                      aes(x = freq, 
+                          y = FloodChance,
                           fill = FloodChance,
                           color = FloodChance)) +
-  geom_point(shape=21, size=4.5) +
-  scale_fill_distiller(palette = "YlOrBr", direction = 1) +
-  scale_color_gradient(guide = FALSE, low = "grey1", high = "black") +
-  labs(x = "Estimated Proportion Black or Hispanic",
-       y = "Number of Properties",
-       title = "Risk by Proportion Black or Hispanic Residents",
-       fill = "Risk") +
-  scale_x_continuous(labels =  scales::percent_format(scale = 1), breaks = pretty_breaks()) +
-  scale_y_continuous(labels = point, breaks = pretty_breaks()) +
+  geom_point(shape=21, 
+             size=4.5) +
+  scale_fill_distiller(palette = "YlOrBr", 
+                       direction = 1) +
+  scale_color_gradient(guide = FALSE, 
+                       low = "grey1", 
+                       high = "black") +
+  labs(title = "Flood Risk by Chicago Zip Code",
+       x = "Black or Hispanic Residents",
+       y = "Properties at Risk") +
+  scale_x_continuous(labels =  scales::percent_format(scale = 1), 
+                     breaks = pretty_breaks()) +
+  scale_y_continuous(labels = point, 
+                     breaks = pretty_breaks()) +
   theme_minimal() +
   theme(
-    plot.title = element_text(size = 24),
-    plot.subtitle = element_text(size = 18),
-    legend.title = element_text(size = 18),
-    legend.text = element_text(size = 12),
-    strip.text.x = element_text(size = 18),
+    plot.title = element_text(size = 12, 
+                              face = "bold"),
+    axis.text = element_text(size = 9),
+    axis.title = element_text(size = 11),
     strip.background.x = element_rect("grey90"),
-    plot.caption = element_text(size = 12),
     legend.position = "none")
 
-ScatterPlot
-
-ScatterPlot2 <- ggplot(DataForPlotSummary %>% filter(Group == 'BoHL'), 
-                       aes(x = freq, y = FloodChance,
-                           fill = FloodChance,
-                           color = FloodChance)) +
-  geom_point(shape=21, size=4.5) +
-  scale_fill_distiller(palette = "YlOrBr", direction = 1) +
-  scale_color_gradient(guide = FALSE, low = "grey1", high = "black") +
-  labs(x = "Proportion Black or Hispanic Residents",
-       y = "Properties at Risk",
-       title = NULL,
-       fill = "Risk") +
-  scale_x_continuous(labels =  scales::percent_format(scale = 1), breaks = pretty_breaks()) +
-  scale_y_continuous(labels = point, breaks = pretty_breaks()) +
-  theme_minimal() +
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 12),
-    legend.position = "none"
-  )
-
-ScatterPlot2
-
-```
-
-```{r Plot Scatter Plot, message = FALSE, fig.width= 9, fig.height = 6}
 ggplotly(ScatterPlot) %>% 
-  layout(annotations = list(x = 0 , 
-                            y = 1.05, 
-                            text = "Sources: First Street Foundation’s Flood Factor, US 2015-2019 American Community Survey", 
-                            showarrow = F, 
-                            xref='paper', yref='paper'))
-
-comb <- subplot(MapPlot2, 
-                ScatterPlot2,
-                titleY = TRUE,
-                titleX = TRUE,
-                margin = 0.07) 
-ggplotly(comb)
-
+  layout(    
+    autosize = F, 
+    width = 440, 
+    height = 440)
 ```
+

@@ -8,17 +8,111 @@ output: html_document
   display: none;
 }
 
-#getting-started img {
-  margin-right: 10px;
-}
 
 </style>
 
-<div class="row" style="padding-top: 30px;">
+<div class="row" style="padding-top: 0px;"> 
 <div class="col-sm-6">
 
-# **Test Journal**
+```{r load libraries, echo = FALSE, message = FALSE, warning=FALSE}
+library(tidyverse)
+library(tidycensus)
+library(ggplot2)
+library(plotly)
+library(scales)
+```
+```{r Get Data, echo = FALSE,message = FALSE, warning=FALSE, results = 'hide'}
+FloodData <- read_csv("ChicagoFloodData.csv") %>%
+  mutate(GEOID = as.numeric(AreaCode))
 
+minGEOID <- min(FloodData$GEOID)
+maxGEOID <- max(FloodData$GEOID)
+
+CensusData <- get_acs(
+  geography = "zcta",
+  table = c(race = "B03002"),
+  geometry = TRUE,
+  cache_table = TRUE) %>% 
+  filter(GEOID >= minGEOID & GEOID <= maxGEOID)
+
+ChicagoData <- merge(CensusData, FloodData) 
+```
+```{r, Clean Data,echo = FALSE, message = FALSE, warning=FALSE, results = FALSE}
+ChicagoData <- ChicagoData %>% 
+  mutate(Group = case_when(variable == "B03002_003" ~ 'W',
+                           variable == "B03002_004" ~ 'BoHL',
+                           variable == "B03002_012" ~ 'BoHL',
+                           variable == "B03002_001" ~ 'D',
+                           variable == "B03002_002" ~ 'D',
+                           variable == "B03002_013" ~ 'D',
+                           variable == "B03002_014" ~ 'D',
+                           variable == "B03002_015" ~ 'D',
+                           variable == "B03002_016" ~ 'D',
+                           variable == "B03002_017" ~ 'D',
+                           variable == "B03002_018" ~ 'D',
+                           variable == "B03002_019" ~ 'D',
+                           variable == "B03002_020" ~ 'D',
+                           variable == "B03002_021" ~ 'D',
+                           TRUE ~ 'Other'))
+
+ChicagoDataSummary <- ChicagoData  %>% 
+  filter(FloodingLikelihood == 0.2) %>%
+  filter(Group != 'D') %>% 
+  group_by(Group, GEOID) %>%
+  summarize(NumPeople = sum(estimate), 
+            PercRisk = mean(PercentAtRisk),
+            FloodChance = mean(FloodChance)) %>%
+  group_by(GEOID) %>%
+  mutate(freq = (NumPeople/sum(NumPeople))*100,
+         freq_group = case_when(
+           freq >= 0 & freq < 20 ~ "0-20%",
+           freq >= 20 & freq < 40 ~ "20-40%",
+           freq >= 40 & freq < 60 ~ "40-60%",
+           freq >= 60 & freq < 80 ~ "60-80%",
+           freq >= 80 & freq <= 100 ~ "80-100%",
+           TRUE ~ 'ERROR'
+         )) 
+
+ChicagoDataSummary <- ChicagoDataSummary %>%
+  filter(Group == 'BoHL')
+
+ChicagoDataSummary$quartile <- ntile(ChicagoDataSummary$FloodChance, 3)
+ChicagoDataSummary <- sf::st_cast(ChicagoDataSummary, "MULTIPOLYGON")
+```
+```{r Plot Themes and Variables,echo = FALSE, message = FALSE, warning=FALSE}
+
+point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
+
+quartile.labs <- c("Lowest","Middle","Highest")
+names(quartile.labs) <- c("1","2","3")
+
+```
+# **Flood Risk in Chicago is Higher for Black and Hispanic Communities**
+```{r Create Map Plot, echo = FALSE, message = FALSE, warning=FALSE}
+MapPlot <- ggplot(data = ChicagoDataSummary, 
+                   aes(fill = FloodChance)) +
+  geom_sf(color = 'black', size = .3) +
+  scale_fill_distiller(palette = "YlOrBr", direction = 1,
+                       breaks = pretty_breaks(),
+                       label = comma,
+                       limits = c(0, 15000)) +
+  labs(title = NULL,
+       fill = "Properties\nat Risk") +
+  theme_classic() +
+  theme(
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank())
+
+ggplotly(MapPlot) %>% 
+  layout(
+    autosize = F, 
+    width = 400, 
+    height = 500
+  ) 
+```
 Chicago has a problem with property flooding, and it is particularly acute for the city’s black and Hispanic communities. Data from First Street Foundation’s (FSF) Flood Model and the American Community Survey (ACS) show that zip codes with majority black and Hispanic populations have substantially more properties at risk of flooding than anywhere else in the city.
 
 FSF’s Flood Model estimates the annual risk of flood and cost of damage for individual addresses to whole states. Risk assessment is based on independent analysis of rainfall, storm surge, and river data, and by coupling these factors to predict their interactions. The model’s predictions regularly update to account for changing weather patterns, like increases in average precipitation or temperatures. 
@@ -29,12 +123,44 @@ Using FSF’s methodology, the number of at-risk properties were generated for e
 
 Distribution of Chicago Properties With an Annual Flood Risk of at Least 1-in-500
 Zip codes were separated into tertiles based on the number of at-risk properties. The upper third shows the zip codes with the most properties at risk.
+<br>
+<br>
+```{r Create Scatter Plot,echo = FALSE, message = FALSE, warning=FALSE}
+ScatterPlot <- ggplot(ChicagoDataSummary, 
+                      aes(x = freq, 
+                          y = FloodChance,
+                          fill = FloodChance,
+                          color = FloodChance)) +
+  geom_point(shape=21, 
+             size=4.5) +
+  scale_fill_distiller(palette = "YlOrBr", 
+                       direction = 1) +
+  scale_color_gradient(guide = FALSE, 
+                       low = "grey1", 
+                       high = "black") +
+  labs(title = "Flood Risk by Chicago Zip Code",
+       x = "Black or Hispanic Residents",
+       y = "Properties at Risk") +
+  scale_x_continuous(labels =  scales::percent_format(scale = 1), 
+                     breaks = pretty_breaks()) +
+  scale_y_continuous(labels = point, 
+                     breaks = pretty_breaks()) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 12, 
+                              face = "bold"),
+    axis.text = element_text(size = 9),
+    axis.title = element_text(size = 11),
+    strip.background.x = element_rect("grey90"),
+    legend.position = "none")
 
-Sources: First Street Foundation’s Flood Factor, US 2015-2019 American Community Survey
-
+ggplotly(ScatterPlot) %>% 
+  layout(    
+    autosize = F, 
+    width = 440, 
+    height = 440)
+```
 Communities that have the most properties at risk of flood—those in the upper third of the distribution—are predominately black and Hispanic communities. Conversely, communities that have the fewest properties at risk of flood—the lower third—are communities where black and Hispanic residents are the smallest percentage of the population. In the high-risk category, nearly 40% of the zip codes are estimated to have 80-100% black or Hispanic residents; there are zero communities with 0-20% black or Hispanic residents in the high-risk category. 
-
-Sources: First Street Foundation’s Flood Factor, US 2015-2019 American Community Survey
 
 A more granular look at flood risk in Chicago shows there is a spectrum of risk for black and Hispanic communities of a magnitude nonexistent in other communities. All communities where the estimated black or Hispanic population is under 20% have less than 2,500 properties at risk. The communities with an estimated black or Hispanic population of over 80% have up to nearly 15,000 properties at risk.
 
@@ -54,12 +180,15 @@ While it would be possible for the DWM to focus on black and Hispanic communitie
 
 As Chicago’s springs get wetter, concerted efforts between the city and its communities will be necessary to reduce flood risk. However, the city’s solutions will not be equitable if they are uniformly distributed. The data shows that black and Hispanic communities risk property flooding that transcends the risk to the city’s other neighborhoods. Thus, to begin to reduce the risk disparity that currently exists, the city will need to provide additional preventative technology to its black and Hispanic communities.  
 
+Data sources: First Street Foundation’s Flood Factor, US 2015-2019 American Community Survey
+
 </div>
 <div class="col-sm-6">
 
-### [Crump Lab: Human Cognition and Performance](https://crumplab.github.io)
 
-<a href = "https://crumplab.github.io">
-![](images/logo.png)
+</a>
+</div>
+
+
 </a>
 </div>
