@@ -1,5 +1,5 @@
 ---
-title: "Journal"
+title: "Article Code"
 output:
   html_document:
     toc: true
@@ -99,15 +99,29 @@ ChicagoDataSummary <- sf::st_cast(ChicagoDataSummary, "MULTIPOLYGON")
 
 point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
 
-quartile.labs <- c("Lowest","Middle","Highest")
-names(quartile.labs) <- c("1","2","3")
+FONTFAMILY = "NULL"
+
+font = list(
+  size = 12,
+  color = "black"
+)
+
+
+label = list(
+  bgcolor = "white",
+  bordercolor = "black",
+  font = font
+)
 
 ```
 
 ## Create Map ##
 ```{r Create Map Plot, message = FALSE, warning=FALSE}
 MapPlot <- ggplot(data = ChicagoDataSummary, 
-                   aes(fill = FloodChance)) +
+                  aes(fill = FloodChance,
+                      text = paste("Zip Code:", GEOID,"\n",
+                                   "Properties at Risk:", FloodChance,"\n",
+                                   "Black or Hispanic Residents:", round(freq),"%"))) +
   geom_sf(color = 'black', size = .3) +
   scale_fill_distiller(palette = "YlOrBr", direction = 1,
                        breaks = pretty_breaks(),
@@ -123,22 +137,27 @@ MapPlot <- ggplot(data = ChicagoDataSummary,
     axis.ticks = element_blank(),
     axis.line = element_blank())
 
-ggplotly(MapPlot) %>% 
+ggplotly(MapPlot, tooltip = c("text")) %>% 
+  style(hoverlabel = label) %>%
   layout(
     autosize = F, 
     width = 400, 
     height = 500
-  ) 
+  ) %>%
+  config(displayModeBar = FALSE,
+         showTips = TRUE)
 ```
 
 ## Create Scatter Plot ##
 ```{r Create Scatter Plot, message = FALSE, warning=FALSE}
-
 ScatterPlot <- ggplot(ChicagoDataSummary, 
                       aes(x = freq, 
                           y = FloodChance,
                           fill = FloodChance,
-                          color = FloodChance)) +
+                          color = FloodChance,
+                          text = paste("Zip Code:", GEOID,"\n",
+                                   "Properties at Risk:", FloodChance,"\n",
+                                   "Black or Hispanic Residents:", round(freq),"%"))) +
   geom_point(shape=21, 
              size=4.5) +
   scale_fill_distiller(palette = "YlOrBr", 
@@ -162,10 +181,13 @@ ScatterPlot <- ggplot(ChicagoDataSummary,
     strip.background.x = element_rect("grey90"),
     legend.position = "none")
 
-ggplotly(ScatterPlot) %>% 
+ggplotly(ScatterPlot, tooltip = "text") %>% 
+  style(hoverlabel = label) %>%
   layout(    
     autosize = F, 
     width = 440, 
-    height = 440)
+    height = 440) %>%
+  config(displayModeBar = FALSE,
+         showTips = TRUE)
 ```
 

@@ -1,5 +1,5 @@
 ---
-title: "Chicago Floods"
+title: "ArticleChicago Floods"
 output: html_document
 ---
 
@@ -83,14 +83,27 @@ ChicagoDataSummary <- sf::st_cast(ChicagoDataSummary, "MULTIPOLYGON")
 
 point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
 
-quartile.labs <- c("Lowest","Middle","Highest")
-names(quartile.labs) <- c("1","2","3")
+FONTFAMILY = "NULL"
+
+font = list(
+  size = 12,
+  color = "black"
+)
+
+label = list(
+  bgcolor = "white",
+  bordercolor = "black",
+  font = font
+)
 
 ```
 # **Flood Risk in Chicago is Higher for Black and Hispanic Communities**
 ```{r Create Map Plot, echo = FALSE, message = FALSE, warning=FALSE}
 MapPlot <- ggplot(data = ChicagoDataSummary, 
-                   aes(fill = FloodChance)) +
+                  aes(fill = FloodChance,
+                      text = paste("Zip Code:", GEOID,"\n",
+                                   "Properties at Risk:", FloodChance,"\n",
+                                   "Black or Hispanic Residents:", round(freq),"%"))) +
   geom_sf(color = 'black', size = .3) +
   scale_fill_distiller(palette = "YlOrBr", direction = 1,
                        breaks = pretty_breaks(),
@@ -106,12 +119,15 @@ MapPlot <- ggplot(data = ChicagoDataSummary,
     axis.ticks = element_blank(),
     axis.line = element_blank())
 
-ggplotly(MapPlot) %>% 
+ggplotly(MapPlot, tooltip = c("text")) %>% 
+  style(hoverlabel = label) %>%
   layout(
     autosize = F, 
     width = 400, 
     height = 500
-  ) 
+  ) %>%
+  config(displayModeBar = FALSE,
+         showTips = TRUE)
 ```
 Chicago has a problem with property flooding, and it is particularly acute for the city’s black and Hispanic communities. Data from First Street Foundation’s (FSF) Flood Model and the American Community Survey (ACS) show that zip codes with majority black and Hispanic populations have substantially more properties at risk of flooding than anywhere else in the city.
 
@@ -130,7 +146,10 @@ ScatterPlot <- ggplot(ChicagoDataSummary,
                       aes(x = freq, 
                           y = FloodChance,
                           fill = FloodChance,
-                          color = FloodChance)) +
+                          color = FloodChance,
+                          text = paste("Zip Code:", GEOID,"\n",
+                                   "Properties at Risk:", FloodChance,"\n",
+                                   "Black or Hispanic Residents:", round(freq),"%"))) +
   geom_point(shape=21, 
              size=4.5) +
   scale_fill_distiller(palette = "YlOrBr", 
@@ -154,11 +173,14 @@ ScatterPlot <- ggplot(ChicagoDataSummary,
     strip.background.x = element_rect("grey90"),
     legend.position = "none")
 
-ggplotly(ScatterPlot) %>% 
+ggplotly(ScatterPlot, tooltip = "text") %>% 
+  style(hoverlabel = label) %>%
   layout(    
     autosize = F, 
     width = 440, 
-    height = 440)
+    height = 440) %>%
+  config(displayModeBar = FALSE,
+         showTips = TRUE)
 ```
 Communities that have the most properties at risk of flood—those in the upper third of the distribution—are predominately black and Hispanic communities. Conversely, communities that have the fewest properties at risk of flood—the lower third—are communities where black and Hispanic residents are the smallest percentage of the population. In the high-risk category, nearly 40% of the zip codes are estimated to have 80-100% black or Hispanic residents; there are zero communities with 0-20% black or Hispanic residents in the high-risk category. 
 
