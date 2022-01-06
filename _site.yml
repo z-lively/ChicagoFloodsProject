@@ -3,9 +3,9 @@ navbar:
   title: "Chicago Floods"
   left:
     - text: "Article"
-      href: Article.html
+      href: index.html
     - text: "Code"
-      href: Code.html
+      href: Journal.html
     - text: "Data Sources"
-      href: DataSources.html
+      href: Links.html
 output_dir: "docs"
