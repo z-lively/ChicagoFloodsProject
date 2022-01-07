@@ -28,7 +28,7 @@ display: none;
 knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 ```
 
-All the code for the Chicago Floods project.
+R code for the Chicago Floods project.
 
 # Start #
 
@@ -45,7 +45,7 @@ library(scales)
 
 # Data #
 
-Load in Chicago flood data from First Street Foundation and ACS data using tidycensus package
+Load in Chicago flood data from First Street Foundation and ACS data using tidycensus package.
 
 ## Get ##
 ```{r Get Data, message = FALSE, warning=FALSE, results = 'hide'}
