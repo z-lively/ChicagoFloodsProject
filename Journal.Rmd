@@ -59,7 +59,7 @@ CensusVariables <- load_variables(2019, "acs5", cache = TRUE)
 
 CensusData <- get_acs(
   geography = "zcta",
-  table = c(race = "B03002"),
+  table = c("B03002"),
   geometry = TRUE,
   cache_table = TRUE) %>% 
   filter(GEOID >= minGEOID & GEOID <= maxGEOID)

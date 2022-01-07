@@ -473,7 +473,7 @@ display: none;
 <span id="cb2-8"><a href="#cb2-8"></a></span>
 <span id="cb2-9"><a href="#cb2-9"></a>CensusData &lt;-<span class="st"> </span><span class="kw">get_acs</span>(</span>
 <span id="cb2-10"><a href="#cb2-10"></a>  <span class="dt">geography =</span> <span class="st">&quot;zcta&quot;</span>,</span>
-<span id="cb2-11"><a href="#cb2-11"></a>  <span class="dt">table =</span> <span class="kw">c</span>(<span class="dt">race =</span> <span class="st">&quot;B03002&quot;</span>),</span>
+<span id="cb2-11"><a href="#cb2-11"></a>  <span class="dt">table =</span> <span class="kw">c</span>(<span class="st">&quot;B03002&quot;</span>),</span>
 <span id="cb2-12"><a href="#cb2-12"></a>  <span class="dt">geometry =</span> <span class="ot">TRUE</span>,</span>
 <span id="cb2-13"><a href="#cb2-13"></a>  <span class="dt">cache_table =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span><span class="st"> </span></span>
 <span id="cb2-14"><a href="#cb2-14"></a><span class="st">  </span><span class="kw">filter</span>(GEOID <span class="op">&gt;=</span><span class="st"> </span>minGEOID <span class="op">&amp;</span><span class="st"> </span>GEOID <span class="op">&lt;=</span><span class="st"> </span>maxGEOID)</span>
