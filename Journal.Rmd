@@ -14,7 +14,7 @@ editor_options:
 
 <style type="text/css">
 .title {
-  display: none;
+display: none;
 }
 
 
@@ -55,6 +55,8 @@ FloodData <- read_csv("ChicagoFloodData.csv") %>%
 minGEOID <- min(FloodData$GEOID)
 maxGEOID <- max(FloodData$GEOID)
 
+CensusVariables <- load_variables(2019, "acs5", cache = TRUE)
+
 CensusData <- get_acs(
   geography = "zcta",
   table = c(race = "B03002"),
@@ -72,41 +74,31 @@ ChicagoData <- ChicagoData %>%
   mutate(Group = case_when(variable == "B03002_003" ~ 'W',
                            variable == "B03002_004" ~ 'BoHL',
                            variable == "B03002_012" ~ 'BoHL',
-                           variable == "B03002_001" ~ 'D',
-                           variable == "B03002_002" ~ 'D',
-                           variable == "B03002_013" ~ 'D',
-                           variable == "B03002_014" ~ 'D',
-                           variable == "B03002_015" ~ 'D',
-                           variable == "B03002_016" ~ 'D',
-                           variable == "B03002_017" ~ 'D',
-                           variable == "B03002_018" ~ 'D',
-                           variable == "B03002_019" ~ 'D',
-                           variable == "B03002_020" ~ 'D',
-                           variable == "B03002_021" ~ 'D',
+                           variable == "B03002_001" ~ 'Duplicate',
+                           variable == "B03002_002" ~ 'Duplicate',
+                           variable == "B03002_013" ~ 'Duplicate',
+                           variable == "B03002_014" ~ 'Duplicate',
+                           variable == "B03002_015" ~ 'Duplicate',
+                           variable == "B03002_016" ~ 'Duplicate',
+                           variable == "B03002_017" ~ 'Duplicate',
+                           variable == "B03002_018" ~ 'Duplicate',
+                           variable == "B03002_019" ~ 'Duplicate',
+                           variable == "B03002_020" ~ 'Duplicate',
+                           variable == "B03002_021" ~ 'Duplicate',
                            TRUE ~ 'Other'))
 
 ChicagoDataSummary <- ChicagoData  %>% 
+  filter(Group != 'Duplicate') %>% 
   filter(FloodingLikelihood == 0.2) %>%
-  filter(Group != 'D') %>% 
   group_by(Group, GEOID) %>%
-  summarize(NumPeople = sum(estimate), 
-            PercRisk = mean(PercentAtRisk),
+  summarize(Population = sum(estimate),
             FloodChance = mean(FloodChance)) %>%
   group_by(GEOID) %>%
-  mutate(freq = (NumPeople/sum(NumPeople))*100,
-         freq_group = case_when(
-           freq >= 0 & freq < 20 ~ "0-20%",
-           freq >= 20 & freq < 40 ~ "20-40%",
-           freq >= 40 & freq < 60 ~ "40-60%",
-           freq >= 60 & freq < 80 ~ "60-80%",
-           freq >= 80 & freq <= 100 ~ "80-100%",
-           TRUE ~ 'ERROR'
-         )) 
+  mutate(PercentPopulation = (Population/sum(Population))*100)
 
 ChicagoDataSummary <- ChicagoDataSummary %>%
   filter(Group == 'BoHL')
 
-ChicagoDataSummary$quartile <- ntile(ChicagoDataSummary$FloodChance, 3)
 ChicagoDataSummary <- sf::st_cast(ChicagoDataSummary, "MULTIPOLYGON")
 ```
 
@@ -116,20 +108,39 @@ Create the two plots for this article. 1) Map of Chicago that plots flood data. 
 ## Themes and Variables ## 
 ```{r Plot Themes and Variables, message = FALSE, warning=FALSE}
 
-point <- format_format(big.mark = ",", decimal.mark = ".", scientific = FALSE)
-
 FONTFAMILY = "NULL"
 
-font = list(
+hover_font = list(
   size = 12,
   color = "black"
 )
 
 
-label = list(
+hover_label = list(
   bgcolor = "white",
   bordercolor = "black",
-  font = font
+  font = hover_font
+)
+
+map_theme <- list(
+  theme_classic() +
+    theme(
+      legend.title = element_text(size = 10),
+      legend.text = element_text(size = 8),
+      axis.text = element_blank(),
+      axis.ticks = element_blank(),
+      axis.line = element_blank())
+)
+
+scatter_theme <- list(
+  theme_minimal() +
+    theme(
+      plot.title = element_text(size = 12, 
+                                face = "bold",
+                                hjust = .5),
+      axis.title = element_text(size = 11),
+      axis.text = element_text(size = 9),
+      legend.position = "none")
 )
 
 ```
@@ -140,7 +151,8 @@ MapPlot <- ggplot(data = ChicagoDataSummary,
                   aes(fill = FloodChance,
                       text = paste("Zip Code:", GEOID,"\n",
                                    "Properties at Risk:", FloodChance,"\n",
-                                   "Black or Hispanic Residents:", round(freq),"%"))) +
+                                   "Black or Hispanic Residents:",
+                                   round(PercentPopulation),"%"))) +
   geom_sf(color = 'black', size = .3) +
   scale_fill_distiller(palette = "YlGnBu", 
                        direction = 1,
@@ -149,16 +161,10 @@ MapPlot <- ggplot(data = ChicagoDataSummary,
                        limits = c(0, 15000)) +
   labs(title = NULL,
        fill = "Properties\nat Risk") +
-  theme_classic() +
-  theme(
-    legend.title = element_text(size = 10),
-    legend.text = element_text(size = 8),
-    axis.text = element_blank(),
-    axis.ticks = element_blank(),
-    axis.line = element_blank())
+  map_theme
 
 ggplotly(MapPlot, tooltip = c("text")) %>% 
-  style(hoverlabel = label) %>%
+  style(hoverlabel = hover_label) %>%
   layout(
     autosize = F, 
     width = 400, 
@@ -171,13 +177,15 @@ ggplotly(MapPlot, tooltip = c("text")) %>%
 ## Scatter Plot ##
 ```{r Create Scatter Plot, message = FALSE, warning=FALSE}
 ScatterPlot <- ggplot(ChicagoDataSummary, 
-                      aes(x = freq, 
+                      aes(x = PercentPopulation, 
                           y = FloodChance,
                           fill = FloodChance,
                           color = FloodChance,
                           text = paste("Zip Code:", GEOID,"\n",
-                                   "Properties at Risk:", FloodChance,"\n",
-                                   "Black or Hispanic Residents:", round(freq),"%"))) +
+                                       "Properties at Risk:",
+                                       FloodChance,"\n",
+                                       "Black or Hispanic Residents:",
+                                       round(PercentPopulation),"%"))) +
   geom_point(shape=21, 
              size=4.5) +
   scale_fill_distiller(palette = "YlGnBu", 
@@ -190,20 +198,12 @@ ScatterPlot <- ggplot(ChicagoDataSummary,
        y = "Properties at Risk") +
   scale_x_continuous(labels =  scales::percent_format(scale = 1), 
                      breaks = pretty_breaks()) +
-  scale_y_continuous(labels = point, 
+  scale_y_continuous(labels = comma, 
                      breaks = pretty_breaks()) +
-  theme_minimal() +
-  theme(
-    plot.title = element_text(size = 12, 
-                              face = "bold",
-                              hjust = .5),
-    axis.text = element_text(size = 9),
-    axis.title = element_text(size = 11),
-    strip.background.x = element_rect("grey90"),
-    legend.position = "none")
+  scatter_theme
 
 ggplotly(ScatterPlot, tooltip = "text") %>% 
-  style(hoverlabel = label) %>%
+  style(hoverlabel = hover_label) %>%
   layout(    
     autosize = F, 
     width = 440, 
