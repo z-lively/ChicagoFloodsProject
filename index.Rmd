@@ -72,8 +72,6 @@ ChicagoDataSummary <- sf::st_cast(ChicagoDataSummary, "MULTIPOLYGON")
 ```
 ```{r Plot Themes and Variables,echo = FALSE, message = FALSE, warning=FALSE}
 
-FONTFAMILY = "NULL"
-
 hover_font = list(
   size = 12,
   color = "black"

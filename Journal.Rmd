@@ -108,8 +108,6 @@ Create the two plots for this article. 1) Map of Chicago that plots flood data. 
 ## Themes and Variables ## 
 ```{r Plot Themes and Variables, message = FALSE, warning=FALSE}
 
-FONTFAMILY = "NULL"
-
 hover_font = list(
   size = 12,
   color = "black"

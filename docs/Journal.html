@@ -519,40 +519,38 @@ display: none;
 <p>Create the two plots for this article. 1) Map of Chicago that plots flood data. 2) Scatter plot that plots risk data and percent of neighborhood that is black or Hispanic. Both plots are interactive; hovering shows Zip code, number of properties at risk of flood, and proportion of zip code that his black or Hispanic.</p>
 <div id="themes-and-variables" class="section level2">
 <h2>Themes and Variables</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>FONTFAMILY =<span class="st"> &quot;NULL&quot;</span></span>
-<span id="cb4-2"><a href="#cb4-2"></a></span>
-<span id="cb4-3"><a href="#cb4-3"></a>hover_font =<span class="st"> </span><span class="kw">list</span>(</span>
-<span id="cb4-4"><a href="#cb4-4"></a>  <span class="dt">size =</span> <span class="dv">12</span>,</span>
-<span id="cb4-5"><a href="#cb4-5"></a>  <span class="dt">color =</span> <span class="st">&quot;black&quot;</span></span>
-<span id="cb4-6"><a href="#cb4-6"></a>)</span>
-<span id="cb4-7"><a href="#cb4-7"></a></span>
-<span id="cb4-8"><a href="#cb4-8"></a></span>
-<span id="cb4-9"><a href="#cb4-9"></a>hover_label =<span class="st"> </span><span class="kw">list</span>(</span>
-<span id="cb4-10"><a href="#cb4-10"></a>  <span class="dt">bgcolor =</span> <span class="st">&quot;white&quot;</span>,</span>
-<span id="cb4-11"><a href="#cb4-11"></a>  <span class="dt">bordercolor =</span> <span class="st">&quot;black&quot;</span>,</span>
-<span id="cb4-12"><a href="#cb4-12"></a>  <span class="dt">font =</span> hover_font</span>
-<span id="cb4-13"><a href="#cb4-13"></a>)</span>
-<span id="cb4-14"><a href="#cb4-14"></a></span>
-<span id="cb4-15"><a href="#cb4-15"></a>map_theme &lt;-<span class="st"> </span><span class="kw">list</span>(</span>
-<span id="cb4-16"><a href="#cb4-16"></a>  <span class="kw">theme_classic</span>() <span class="op">+</span></span>
-<span id="cb4-17"><a href="#cb4-17"></a><span class="st">    </span><span class="kw">theme</span>(</span>
-<span id="cb4-18"><a href="#cb4-18"></a>      <span class="dt">legend.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">10</span>),</span>
-<span id="cb4-19"><a href="#cb4-19"></a>      <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">8</span>),</span>
-<span id="cb4-20"><a href="#cb4-20"></a>      <span class="dt">axis.text =</span> <span class="kw">element_blank</span>(),</span>
-<span id="cb4-21"><a href="#cb4-21"></a>      <span class="dt">axis.ticks =</span> <span class="kw">element_blank</span>(),</span>
-<span id="cb4-22"><a href="#cb4-22"></a>      <span class="dt">axis.line =</span> <span class="kw">element_blank</span>())</span>
-<span id="cb4-23"><a href="#cb4-23"></a>)</span>
-<span id="cb4-24"><a href="#cb4-24"></a></span>
-<span id="cb4-25"><a href="#cb4-25"></a>scatter_theme &lt;-<span class="st"> </span><span class="kw">list</span>(</span>
-<span id="cb4-26"><a href="#cb4-26"></a>  <span class="kw">theme_minimal</span>() <span class="op">+</span></span>
-<span id="cb4-27"><a href="#cb4-27"></a><span class="st">    </span><span class="kw">theme</span>(</span>
-<span id="cb4-28"><a href="#cb4-28"></a>      <span class="dt">plot.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">12</span>, </span>
-<span id="cb4-29"><a href="#cb4-29"></a>                                <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>,</span>
-<span id="cb4-30"><a href="#cb4-30"></a>                                <span class="dt">hjust =</span> <span class="fl">.5</span>),</span>
-<span id="cb4-31"><a href="#cb4-31"></a>      <span class="dt">axis.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">11</span>),</span>
-<span id="cb4-32"><a href="#cb4-32"></a>      <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>),</span>
-<span id="cb4-33"><a href="#cb4-33"></a>      <span class="dt">legend.position =</span> <span class="st">&quot;none&quot;</span>)</span>
-<span id="cb4-34"><a href="#cb4-34"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>hover_font =<span class="st"> </span><span class="kw">list</span>(</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  <span class="dt">size =</span> <span class="dv">12</span>,</span>
+<span id="cb4-3"><a href="#cb4-3"></a>  <span class="dt">color =</span> <span class="st">&quot;black&quot;</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a>)</span>
+<span id="cb4-5"><a href="#cb4-5"></a></span>
+<span id="cb4-6"><a href="#cb4-6"></a></span>
+<span id="cb4-7"><a href="#cb4-7"></a>hover_label =<span class="st"> </span><span class="kw">list</span>(</span>
+<span id="cb4-8"><a href="#cb4-8"></a>  <span class="dt">bgcolor =</span> <span class="st">&quot;white&quot;</span>,</span>
+<span id="cb4-9"><a href="#cb4-9"></a>  <span class="dt">bordercolor =</span> <span class="st">&quot;black&quot;</span>,</span>
+<span id="cb4-10"><a href="#cb4-10"></a>  <span class="dt">font =</span> hover_font</span>
+<span id="cb4-11"><a href="#cb4-11"></a>)</span>
+<span id="cb4-12"><a href="#cb4-12"></a></span>
+<span id="cb4-13"><a href="#cb4-13"></a>map_theme &lt;-<span class="st"> </span><span class="kw">list</span>(</span>
+<span id="cb4-14"><a href="#cb4-14"></a>  <span class="kw">theme_classic</span>() <span class="op">+</span></span>
+<span id="cb4-15"><a href="#cb4-15"></a><span class="st">    </span><span class="kw">theme</span>(</span>
+<span id="cb4-16"><a href="#cb4-16"></a>      <span class="dt">legend.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">10</span>),</span>
+<span id="cb4-17"><a href="#cb4-17"></a>      <span class="dt">legend.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">8</span>),</span>
+<span id="cb4-18"><a href="#cb4-18"></a>      <span class="dt">axis.text =</span> <span class="kw">element_blank</span>(),</span>
+<span id="cb4-19"><a href="#cb4-19"></a>      <span class="dt">axis.ticks =</span> <span class="kw">element_blank</span>(),</span>
+<span id="cb4-20"><a href="#cb4-20"></a>      <span class="dt">axis.line =</span> <span class="kw">element_blank</span>())</span>
+<span id="cb4-21"><a href="#cb4-21"></a>)</span>
+<span id="cb4-22"><a href="#cb4-22"></a></span>
+<span id="cb4-23"><a href="#cb4-23"></a>scatter_theme &lt;-<span class="st"> </span><span class="kw">list</span>(</span>
+<span id="cb4-24"><a href="#cb4-24"></a>  <span class="kw">theme_minimal</span>() <span class="op">+</span></span>
+<span id="cb4-25"><a href="#cb4-25"></a><span class="st">    </span><span class="kw">theme</span>(</span>
+<span id="cb4-26"><a href="#cb4-26"></a>      <span class="dt">plot.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">12</span>, </span>
+<span id="cb4-27"><a href="#cb4-27"></a>                                <span class="dt">face =</span> <span class="st">&quot;bold&quot;</span>,</span>
+<span id="cb4-28"><a href="#cb4-28"></a>                                <span class="dt">hjust =</span> <span class="fl">.5</span>),</span>
+<span id="cb4-29"><a href="#cb4-29"></a>      <span class="dt">axis.title =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">11</span>),</span>
+<span id="cb4-30"><a href="#cb4-30"></a>      <span class="dt">axis.text =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>),</span>
+<span id="cb4-31"><a href="#cb4-31"></a>      <span class="dt">legend.position =</span> <span class="st">&quot;none&quot;</span>)</span>
+<span id="cb4-32"><a href="#cb4-32"></a>)</span></code></pre></div>
 </div>
 <div id="map" class="section level2">
 <h2>Map</h2>
